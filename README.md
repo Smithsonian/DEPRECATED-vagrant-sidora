@@ -31,3 +31,7 @@ Point your browser at http://localhost:8080/fedora after starting up the fedora 
 Status
 ------
 Currently this launcher only handles deployment of Fedora Commons 3.6.2.  It will gradually include the rest of the Islandora and Sidora stack.
+
+References
+----------
+* The Fedora Commons deployment is based on instant-fedora-commons (https://github.com/kaisternad/instant-fedora-commons)
