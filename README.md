@@ -1,5 +1,5 @@
-Vagrant deployment for Sidora scratch build
-===========================================
+Vagrant deployment for Sidora
+=============================
 
 Deployment scripts for automated scratch build of Sidora.
 
