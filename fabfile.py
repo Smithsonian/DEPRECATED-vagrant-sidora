@@ -6,7 +6,8 @@ from fabtools.vagrant import vagrant
 def deploy():
     # Require SIdora from github
     #fabtools.require.git.working_copy("https://github.com/Smithsonian/sidora.git")
-    run("git clone https://github.com/Smithsonian/sidora.git")
+    fabtools.require.git.working_copy("https://github.com/Smithsonian/sidora-deploy")
+    #run("git clone https://github.com/Smithsonian/sidora.git")
 
 @task
 def setup():
