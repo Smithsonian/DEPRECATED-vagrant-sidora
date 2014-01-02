@@ -24,7 +24,6 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     auto_correct: true
   config.vm.network :forwarded_port, guest: 8443, host: 8443,
     auto_correct: true
-  #config.vm.network :auto_correct
 
   # Create a private network, which allows host-only access to the machine
   # using a specific IP.

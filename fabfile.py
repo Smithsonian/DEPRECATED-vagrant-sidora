@@ -13,3 +13,9 @@ def deploy():
 def setup():
     # Require git
     fabtools.rpm.install('git')
+    
+################    
+# Fedora server
+@task
+def fc(cmd):
+    sudo('/etc/init.d/fcrepo-server %s' % cmd)
