@@ -20,12 +20,19 @@ Installation
 ```
  git clone https://github.com/Smithsonian/vagrant-sidora.git
  cd vagrant-sidora
+ git submodule init
+ git submodule update
  vagrant up
 ```
 
 Point your browser at http://localhost:8080/fedora after starting up the fedora server.  You can do this via fabric (see below), for convenience, or you can do it manually like so:
 ```
  vagrant ssh -c "sudo /etc/init.d/fcrepo-server start"
+```
+
+or using fabric:
+```
+ fab vagrant fc:start
 ```
 
 Status
