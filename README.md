@@ -43,7 +43,7 @@ Starting up services
 
 Apache
 ```
- fab vagrant start:apache
+ fab vagrant start:httpd
 ```
 
 Fedora
