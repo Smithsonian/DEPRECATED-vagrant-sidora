@@ -23,6 +23,7 @@ Fabtools currently requires development version:
 
 Installation
 ------------
+Setup the local VM environment:
 ```
  git clone https://github.com/Smithsonian/vagrant-sidora.git
  cd vagrant-sidora
@@ -31,19 +32,30 @@ Installation
  vagrant up
 ```
 
+Then provision using fabric:
+```
+ fab vagrant install
+```
+
+
+Starting up services
+--------------------
+
+Apache
+```
+ fab vagrant start:apache
+```
+
+Fedora
+
 Point your browser at http://localhost:8080/fedora after starting up the fedora server.  You can do this via fabric (see below), for convenience, or you can do it manually like so:
 ```
  vagrant ssh -c "sudo /etc/init.d/fcrepo-server start"
 ```
 
-or using fabric:
-```
- fab vagrant fc:start
-```
-
 Status
 ------
-Currently this launcher only handles deployment of Fedora Commons 3.6.2.  It will gradually include the rest of the Islandora and Sidora stack.
+Currently this launcher only handles deployment of Fedora Commons 3.4.2.  It will gradually include the rest of the Islandora and Sidora stack.
 
 References
 ----------
