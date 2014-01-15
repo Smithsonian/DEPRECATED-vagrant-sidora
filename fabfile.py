@@ -109,116 +109,14 @@ def _apache_install():
     
     httpd_conf = "/etc/httpd/conf/httpd.conf"
     files.sed(httpd_conf, 'DocumentRoot "/var/www/html"', 'DocumentRoot "/var/www/drupal"', use_sudo=True)
-    files.append(httpd_conf,'<Directory "/var/www/drupal">', use_sudo=True)
-    files.append(httpd_conf,'   Options FollowSymLinks', use_sudo=True)
-    files.append(httpd_conf,'   AllowOverride All', use_sudo=True)
-    files.append(httpd_conf,'   Order allow,deny', use_sudo=True)
-    files.append(httpd_conf,'   Allow from all', use_sudo=True)
-    files.append(httpd_conf,'</Directory>', use_sudo=True)
+#     files.append(httpd_conf,'<Directory "/var/www/drupal">', use_sudo=True)
+#     files.append(httpd_conf,'   Options FollowSymLinks', use_sudo=True)
+#     files.append(httpd_conf,'   AllowOverride All', use_sudo=True)
+#     files.append(httpd_conf,'   Order allow,deny', use_sudo=True)
+#     files.append(httpd_conf,'   Allow from all', use_sudo=True)
+#     files.append(httpd_conf,'</Directory>', use_sudo=True)
 
 #     files.sed(httpd_conf, '<Directory "/var/www/html">', '<Directory "/var/www/drupal">', use_sudo=True)
-
-
-
-#     s = '''\
-#         #
-#         # DocumentRoot: The directory out of which you will serve your
-#         # documents. By default, all requests are taken from this directory, but
-#         # symbolic links and aliases may be used to point to other locations.
-#         #
-#         DocumentRoot "/var/www/html"
-#         '''
-#     r = '''\
-#         #
-#         # DocumentRoot: The directory out of which you will serve your
-#         # documents. By default, all requests are taken from this directory, but
-#         # symbolic links and aliases may be used to point to other locations.
-#         #
-#         DocumentRoot "/var/www/drupal"    
-#         '''
-#     files.sed(httpd_conf, textwrap.dedent(s), textwrap.dedent(r), use_sudo=True)
-# 
-#     s = '''\
-#         # First, we configure the "default" to be a very restrictive set of
-#         # features.
-#         #
-#         <Directory />
-#             Options FollowSymLinks
-#             AllowOverride None
-#         </Directory>
-#         '''
-#     r = '''\
-#         # First, we configure the "default" to be a very restrictive set of
-#         # features.
-#         #
-#         <Directory />
-#             Options FollowSymLinks
-#             AllowOverride None
-#         </Directory>
-#         '''
-#     files.sed(httpd_conf, textwrap.dedent(s), textwrap.dedent(r), use_sudo=True)
-# 
-#     s = '''\
-#         #
-#         # Note that from this point forward you must specifically allow
-#         # particular features to be enabled - so if something's not working as
-#         # you might expect, make sure that you have specifically enabled it
-#         # below.
-#         #
-# 
-#         #
-#         # This should be changed to whatever you set DocumentRoot to.
-#         #
-#         <Directory "/var/www/html">
-# 
-#         #
-#         # Possible values for the Options directive are "None", "All",
-#         # or any combination of:
-#         #   Indexes Includes FollowSymLinks SymLinksifOwnerMatch ExecCGI MultiViews
-#         #
-#         # Note that "MultiViews" must be named *explicitly* --- "Options All"
-#         # doesn't give it to you.
-#         #
-#         # The Options directive is both complicated and important.  Please see
-#         # http://httpd.apache.org/docs/2.2/mod/core.html#options
-#         # for more information.
-#         #
-#             Options Indexes FollowSymLinks
-# 
-#         #
-#         # AllowOverride controls what directives may be placed in .htaccess files.
-#         # It can be "All", "None", or any combination of the keywords:
-#         #   Options FileInfo AuthConfig Limit
-#         #
-#             AllowOverride None
-# 
-#         #
-#         # Controls who can get stuff from this server.
-#         #
-#             Order allow,deny
-#             Allow from all
-# 
-#         </Directory>
-#         '''
-#     r = '''\
-#         #
-#         # Note that from this point forward you must specifically allow
-#         # particular features to be enabled - so if something's not working as
-#         # you might expect, make sure that you have specifically enabled it
-#         # below.
-#         #
-# 
-#         #
-#         # This should be changed to whatever you set DocumentRoot to.
-#         #
-#         <Directory "/var/www/drupal">
-#             Options FollowSymLinks
-#             AllowOverride All
-#             Order allow,deny
-#             Allow from all
-#         </Directory>
-#         '''
-#     files.sed(httpd_conf, textwrap.dedent(s), textwrap.dedent(r), use_sudo=True)
 
     sudo('chkconfig httpd on')
     fabtools.service.start('httpd')
