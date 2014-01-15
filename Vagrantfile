@@ -55,20 +55,20 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   # somehow need to incorporate this: http://cbednarski.com/articles/creating-vagrant-base-box-for-centos-62/
 #  config.vm.provision :shell, :inline => "sudo cp /vagrant/conf/ifcfg-eth0 /etc/sysconfig/network-scripts/ifcfg-eth0"
   #config.vm.provision :unix_reboot
-  config.vm.provision :shell, :inline => "sudo yum -y update"
-  config.vm.provision :shell, :inline => "sudo yum -y upgrade"
-#  config.vm.provision :shell, :inline => "sudo rpm -Uvh http://packages.sw.be/rpmforge-release/rpmforge-release-0.5.3-1.el5.rf.x86_64.rpm "
-  config.vm.provision :shell, :inline => "sudo rpm -Uvh http://packages.sw.be/rpmforge-release/rpmforge-release-0.5.3-1.el6.rf.x86_64.rpm "
-  config.vm.provision :shell, :inline => "sudo yum -y --skip-broken groupinstall 'Development Tools'"
-  config.vm.provision :shell, :inline => "sudo yum -y install puppet wget mlocate"
-
-  # Fedora
-  
-  config.vm.provision :shell, :inline => "sudo yum -y install mysql mysql-server"
-  config.vm.provision :shell, :inline => "sudo chkconfig mysqld on"
-  config.vm.provision :shell, :inline => "sudo service mysqld start"
-#/usr/bin/mysqladmin -u root password 'new-password'
-#/usr/bin/mysqladmin -u root -h localhost.localdomain password 'new-password'
+#   config.vm.provision :shell, :inline => "sudo yum -y update"
+#   config.vm.provision :shell, :inline => "sudo yum -y upgrade"
+# #  config.vm.provision :shell, :inline => "sudo rpm -Uvh http://packages.sw.be/rpmforge-release/rpmforge-release-0.5.3-1.el5.rf.x86_64.rpm "
+#   config.vm.provision :shell, :inline => "sudo rpm -Uvh http://packages.sw.be/rpmforge-release/rpmforge-release-0.5.3-1.el6.rf.x86_64.rpm "
+#   config.vm.provision :shell, :inline => "sudo yum -y --skip-broken groupinstall 'Development Tools'"
+#   config.vm.provision :shell, :inline => "sudo yum -y install puppet wget mlocate"
+# 
+#   # Fedora
+#   
+#   config.vm.provision :shell, :inline => "sudo yum -y install mysql mysql-server"
+#   config.vm.provision :shell, :inline => "sudo chkconfig mysqld on"
+#   config.vm.provision :shell, :inline => "sudo service mysqld start"
+# #/usr/bin/mysqladmin -u root password 'new-password'
+# #/usr/bin/mysqladmin -u root -h localhost.localdomain password 'new-password'
 
 
   # Enable provisioning with chef solo, specifying a cookbooks path, roles
@@ -86,43 +86,43 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   #   chef.json = { :mysql_password => "foo" }
   # end
   
-  config.omnibus.chef_version = :latest
-  
-  config.vm.provision :chef_solo do |chef|
-    chef.cookbooks_path = "cookbooks"
-    #chef.add_recipe "apt"
-    chef.add_recipe "mysql::server"
-    chef.add_recipe "java"
-    chef.add_recipe "fedora"
-    chef.json = { 
-      :mysql => {:server_root_password => "foo", :bind_address => "localhost"},
-      :java => {:install_flavor => "openjdk", :jdk_version => '7'},
-      :fcrepo => {
-        :installpaths => {
-          :fedora => "/usr/share/fcrepo",
-          :tomcat => "/usr/share/fcrepo/tomcat"
-        },
-        :database => {
-          :host => "localhost",
-          :name => "fedora3",
-          :username => "fedoraAdmin",
-          :password => "fedoraAdmin"
-        },
-        :hostname => "localhost",
-        :context => "fedora",
-        :port => "8080",
-        :osuser => "fcrepo",
-        :osgroup => "fcrepo",
-        :adminpassword => "fedoraAdmin",
-        :users => {
-          :databaseUser => {
-            :username => "fedora",
-            :password => "fedora"
-          }
-        }
-      }
-    }
-  end
+#   config.omnibus.chef_version = :latest
+#   
+#   config.vm.provision :chef_solo do |chef|
+#     chef.cookbooks_path = "cookbooks"
+#     #chef.add_recipe "apt"
+#     chef.add_recipe "mysql::server"
+#     chef.add_recipe "java"
+#     chef.add_recipe "fedora"
+#     chef.json = { 
+#       :mysql => {:server_root_password => "foo", :bind_address => "localhost"},
+#       :java => {:install_flavor => "openjdk", :jdk_version => '7'},
+#       :fcrepo => {
+#         :installpaths => {
+#           :fedora => "/usr/share/fcrepo",
+#           :tomcat => "/usr/share/fcrepo/tomcat"
+#         },
+#         :database => {
+#           :host => "localhost",
+#           :name => "fedora3",
+#           :username => "fedoraAdmin",
+#           :password => "fedoraAdmin"
+#         },
+#         :hostname => "localhost",
+#         :context => "fedora",
+#         :port => "8080",
+#         :osuser => "fcrepo",
+#         :osgroup => "fcrepo",
+#         :adminpassword => "fedoraAdmin",
+#         :users => {
+#           :databaseUser => {
+#             :username => "fedora",
+#             :password => "fedora"
+#           }
+#         }
+#       }
+#     }
+#   end
  
   # Puppet provisioning 
 #   config.vm.provision :puppet do |puppet|
