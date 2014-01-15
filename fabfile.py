@@ -10,13 +10,13 @@ import fabtools.mysql
 
 @task
 def install():
-#     _rpm_setup()
-#     _devtools_install()
-#     _utilities_install()
-#     _java_install()
-#     _fedora_prep()
-#     _mysql_install()
-#     _php_install()
+    _rpm_setup()
+    _devtools_install()
+    _utilities_install()
+    _java_install()
+    _fedora_prep()
+    _mysql_install()
+    _php_install()
     _apache_install()
     _drupal_install()
 
@@ -95,7 +95,8 @@ def _mysql_install():
         fabtools.mysql.query("GRANT ALL ON fedora3.* TO fedora@localhost IDENTIFIED BY 'Password123';")
         
 def _php_install():
-    require.rpm.packages(['php'])
+    php = ['php','php-cli','php-common','php-gd','php-ldap','php-mbstring','php-mysql','php-pdo','php-soap','php-xml']
+    require.rpm.packages(php)
     
     # Expand Key PHP Limits
     files.sed('/etc/php.ini', 'upload_max_filesize = \w+', 'upload_max_filesize = 64M', use_sudo=True)
@@ -127,7 +128,7 @@ def _apache_install():
 
     # Start apache
     sudo('chkconfig httpd on')
-    fabtools.service.start('httpd')
+#     fabtools.service.start('httpd')
 
 def _drupal_install():
     '''
@@ -135,16 +136,16 @@ def _drupal_install():
     '''
     
     # Download and unpack Drupal
-#     run('wget http://ftp.drupal.org/files/projects/drupal-6.26.tar.gz')
-#     run('tar -zxvf drupal-6.26.tar.gz')
-#     sudo('mv drupal-6.26 /var/www')
-#     with cd('/var/www'):
-#         sudo('ln -s drupal-6.26 drupal')
-#     
-#     # Set up Multisites
-#     with cd('/var/www/drupal'):
-#         sudo('ln -s . fieldbooks')
-#         sudo('ln -s . exhibition')
+    run('wget http://ftp.drupal.org/files/projects/drupal-6.26.tar.gz')
+    run('tar -zxvf drupal-6.26.tar.gz')
+    sudo('mv drupal-6.26 /var/www')
+    with cd('/var/www'):
+        sudo('ln -s drupal-6.26 drupal')
+    
+    # Set up Multisites
+    with cd('/var/www/drupal'):
+        sudo('ln -s . fieldbooks')
+        sudo('ln -s . exhibition')
     with cd('/var/www/drupal/sites'):
         sudo('cp -r default si-islandora.si.edu.fieldbooks')
         sudo('cp -r default si-islandora.si.edu.exhibition')
@@ -171,7 +172,9 @@ def setup():
     fabtools.rpm.install('git')
     
     
-    
+@task
+def start(service):
+    fabtools.service.start(service)    
     
     
 ##########################    
