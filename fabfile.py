@@ -18,6 +18,7 @@ def install():
 #     _mysql_install()
 #     _php_install()
     _apache_install()
+    _drupal_install()
 
 def _rpm_setup():
     # prepare rpm installations
@@ -102,25 +103,59 @@ def _php_install():
     files.sed('/etc/php.ini', 'memory_limit = \w+', 'memory_limit = 128M', use_sudo=True)
 
 def _apache_install():
+    '''
+    Installs apache and modifies configuration for Drupal
+    '''
+
+    # Install apache
     require.rpm.packages(['httpd'])
     
-    if not files.is_dir('/var/www/drupal'):
-        sudo('mkdir /var/www/drupal')
+    # Create drupal DocumentRoot
+#     if not fabtools.files.is_dir('/var/www/drupal'):
+#         sudo('mkdir /var/www/drupal')
     
+    # Modify httpd.conf
     httpd_conf = "/etc/httpd/conf/httpd.conf"
     files.sed(httpd_conf, 'DocumentRoot "/var/www/html"', 'DocumentRoot "/var/www/drupal"', use_sudo=True)
-#     files.append(httpd_conf,'<Directory "/var/www/drupal">', use_sudo=True)
-#     files.append(httpd_conf,'   Options FollowSymLinks', use_sudo=True)
-#     files.append(httpd_conf,'   AllowOverride All', use_sudo=True)
-#     files.append(httpd_conf,'   Order allow,deny', use_sudo=True)
-#     files.append(httpd_conf,'   Allow from all', use_sudo=True)
-#     files.append(httpd_conf,'</Directory>', use_sudo=True)
+    if not files.contains(httpd_conf, '<Directory "/var/www/drupal">'):
+        files.append(httpd_conf,'<Directory "/var/www/drupal">', use_sudo=True)
+        files.append(httpd_conf,'   Options FollowSymLinks', use_sudo=True)
+        files.append(httpd_conf,'   AllowOverride All', use_sudo=True)
+        files.append(httpd_conf,'   Order allow,deny', use_sudo=True)
+        files.append(httpd_conf,'   Allow from all', use_sudo=True)
+        files.append(httpd_conf,'</Directory>', use_sudo=True)
 
-#     files.sed(httpd_conf, '<Directory "/var/www/html">', '<Directory "/var/www/drupal">', use_sudo=True)
-
+    # Start apache
     sudo('chkconfig httpd on')
     fabtools.service.start('httpd')
 
+def _drupal_install():
+    '''
+    Installs Drupal
+    '''
+    
+    # Download and unpack Drupal
+#     run('wget http://ftp.drupal.org/files/projects/drupal-6.26.tar.gz')
+#     run('tar -zxvf drupal-6.26.tar.gz')
+#     sudo('mv drupal-6.26 /var/www')
+#     with cd('/var/www'):
+#         sudo('ln -s drupal-6.26 drupal')
+#     
+#     # Set up Multisites
+#     with cd('/var/www/drupal'):
+#         sudo('ln -s . fieldbooks')
+#         sudo('ln -s . exhibition')
+    with cd('/var/www/drupal/sites'):
+        sudo('cp -r default si-islandora.si.edu.fieldbooks')
+        sudo('cp -r default si-islandora.si.edu.exhibition')
+    with cd('/var/www/drupal/sites/si-islandora.si.edu.fieldbooks'):
+        sudo('cp default.settings.php settings.php')
+        sudo('chmod a+w .')
+        sudo('chmod a+w settings.php')
+    with cd('/var/www/drupal/sites/si-islandora.si.edu.exhibition'):
+        sudo('cp default.settings.php settings.php')
+        sudo('chmod a+w .')
+        sudo('chmod a+w settings.php')
 
 
 @task
