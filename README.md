@@ -7,12 +7,18 @@ Requirements
 ------------
 * Download and install VirtualBox (https://www.virtualbox.org/)
 * Download and install Vagrant (http://www.vagrantup.com/)
-* (optional) Download and install Fabric (http://fabfile.org/)
+* Download and install Fabric (http://fabfile.org/)
+* Download and install Fabtools
 
 Note - the easiest way to install Fabric is through pip (or easy_install):
 
 ```
  pip install fabric
+```
+
+Fabtools currently requires development version:
+```
+ pip install git+git://github.com/ronnix/fabtools.git
 ```
 
 Installation
