@@ -19,6 +19,7 @@ def install():
     _php_install()
     _apache_install()
     _drupal_install()
+    _drupal_setup()
 
 def _rpm_setup():
     # prepare rpm installations
@@ -57,6 +58,9 @@ def _fedora_prep():
 #     with cd('/home/fedora'):
     fedora_url = 'http://downloads.sourceforge.net/project/fedora-commons/fedora/3.4.2/fcrepo-installer-3.4.2.jar'
     sudo("wget -P /home/fedora '{}'".format(fedora_url))
+    sudo('mkdir /usr/local/fedora')
+    sudo('chown fedora:fedora /usr/local/fedora')
+    sudo('mv /home/fedora/fcrepo-installer-3.4.2.jar /usr/local/fedora/')
     
 def _mysql_install():
     '''
@@ -79,19 +83,19 @@ def _mysql_install():
 
         # Drupal databases
         if not fabtools.mysql.database_exists('drupal6_default'):
-            fabtools.mysql.create_database('drupal6_default')
+            fabtools.mysql.create_database('drupal6_default',owner='drupaldbuser')
         if not fabtools.mysql.database_exists('drupal6_exhibition'):
-            fabtools.mysql.create_database('drupal6_exhibition')
+            fabtools.mysql.create_database('drupal6_exhibition',owner='drupaldbuser')
         if not fabtools.mysql.database_exists('drupal6_fieldbooks'):
-            fabtools.mysql.create_database('drupal6_fieldbooks')
+            fabtools.mysql.create_database('drupal6_fieldbooks',owner='drupaldbuser')
         
         # Fedora databases
         if not fabtools.mysql.database_exists('fedora3'):
             fabtools.mysql.create_database('fedora3')
 
-        fabtools.mysql.query("GRANT ALL ON drupal6_default.* TO drupaldbuser@localhost IDENTIFIED BY 'Password123';")
-        fabtools.mysql.query("GRANT ALL ON drupal6_exhibition.* TO drupaldbuser@localhost IDENTIFIED BY 'Password123';")
-        fabtools.mysql.query("GRANT ALL ON drupal6_fieldbooks.* TO drupaldbuser@localhost IDENTIFIED BY 'Password123';")
+        fabtools.mysql.query("GRANT ALL ON drupal6_default.* TO 'drupaldbuser'@'localhost' IDENTIFIED BY 'Password123';")
+        fabtools.mysql.query("GRANT ALL ON drupal6_exhibition.* TO 'drupaldbuser'@'localhost' IDENTIFIED BY 'Password123';")
+        fabtools.mysql.query("GRANT ALL ON drupal6_fieldbooks.* TO 'drupaldbuser'@'localhost' IDENTIFIED BY 'Password123';")
         fabtools.mysql.query("GRANT ALL ON fedora3.* TO fedora@localhost IDENTIFIED BY 'Password123';")
         
 def _php_install():
@@ -137,18 +141,23 @@ def _drupal_install():
     
     # Download and unpack Drupal
     run('wget http://ftp.drupal.org/files/projects/drupal-6.26.tar.gz')
+    #run('drush dl drupal-26')
     run('tar -zxvf drupal-6.26.tar.gz')
     sudo('mv drupal-6.26 /var/www')
     with cd('/var/www'):
         sudo('ln -s drupal-6.26 drupal')
     
-    # Set up Multisites
+    # Set up Multi-sites
     with cd('/var/www/drupal'):
         sudo('ln -s . fieldbooks')
         sudo('ln -s . exhibition')
     with cd('/var/www/drupal/sites'):
         sudo('cp -r default si-islandora.si.edu.fieldbooks')
         sudo('cp -r default si-islandora.si.edu.exhibition')
+    with cd('/var/www/drupal/sites/default'):
+        sudo('cp default.settings.php settings.php')
+        sudo('chmod a+w .')
+        sudo('chmod a+w settings.php')
     with cd('/var/www/drupal/sites/si-islandora.si.edu.fieldbooks'):
         sudo('cp default.settings.php settings.php')
         sudo('chmod a+w .')
@@ -158,6 +167,43 @@ def _drupal_install():
         sudo('chmod a+w .')
         sudo('chmod a+w settings.php')
 
+def _drupal_setup():
+    require.rpm.packages(['drupal6-drush'])
+    
+    # Download Core
+    ##########################################################
+    #drush dl -y --destination=$httpDir --drupal-project-rename=$rootDir;
+
+    with cd('/var/www/drupal/'):
+        drush_site_install = ['drush site-install',
+                        '-y default',
+                        '--account-mail=admin@localhost',
+                        '--account-name=admin',
+                        '--account-pass=Password123',
+                        '--site-name=Sidora',
+                        '--site-mail=admin@localhost',
+                        '--locale=si',
+                        '--db-url=mysql://drupaldbuser:Password123@localhost/drupal6_default']
+        drush_cmd = ' '.join(drush_site_install)
+        sudo(drush_cmd)                  
+    
+    with cd('/var/www/drupal/sites/default'):
+        sudo('chmod a-w .')
+        sudo('chmod a-w settings.php')
+
+    with cd('/var/www/drupal/sites/all/'):
+        sudo('mkdir modules')
+
+    with cd('/var/www/drupal/sites/all/modules'):
+        sudo('git clone git://github.com/Smithsonian/sidora.git')
+
+    with cd('/var/www/drupal/sites/all/modules'):
+        drush_modules = []
+        drush_cmd = 'drush -y dl ' + ' '.join(drush_modules)
+        drush_cmd = 'drush -y en ' + ' '.join(drush_modules)
+
+def _install_fedora():
+    pass
 
 @task
 def deploy():
