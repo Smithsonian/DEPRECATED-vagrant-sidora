@@ -203,14 +203,42 @@ def _drupal_setup():
         drush_cmd = 'drush -y en ' + ' '.join(drush_modules)
 
 def _install_fedora():
-    pass
+    with cd('/usr/local/fedora'):
+        sudo('java -jar fcrepo-installer-3.4.2.jar /var/www/drupal/sites/all/modules/sidora/data/fedora/install.properties', user='fedora')
+        
+    # Start Tomcat
+    sudo('/usr/local/fedora/tomcat/bin/startup.sh')
+    
+    # Check catalina.out for errors
+#    tail -f /usr/local/fedora/tomcat/logs/catalina.out
 
-@task
-def deploy():
-    # Require SIdora from github
-    #fabtools.require.git.working_copy("https://github.com/Smithsonian/sidora.git")
-    fabtools.require.git.working_copy("https://github.com/Smithsonian/sidora-deploy")
-    #run("git clone https://github.com/Smithsonian/sidora.git")
+    # Test Fedora in browser
+    # run('curl http://localhost:8080/fedora')
+
+    # Stop Tomcat
+    sudo('/usr/local/fedora/tomcat/bin/shutdown.sh')
+    
+    # Remove the following Fedora default XACML policy files:
+    with cd('/usr/local/fedora/data/fedora-xacml-policies/repository-policies/default'):
+        sudo('rm deny-policy-management-if-not-administrator.xml')
+        sudo('rm deny-apim-if-not-localhost.xml')
+
+    # Add the Sidora policy files
+    with cd('/var/www/drupal/sites/all/sidora/data/xacml'):
+        sudo('cp *  /usr/local/fedora/data/fedora-xacml-policies/repository-policies/default')
+
+    # Start Tomcat to apply the policy changes
+    sudo('/usr/local/fedora/tomcat/bin/startup.sh')
+        
+
+    
+
+# @task
+# def deploy():
+#     # Require SIdora from github
+#     #fabtools.require.git.working_copy("https://github.com/Smithsonian/sidora.git")
+#     fabtools.require.git.working_copy("https://github.com/Smithsonian/sidora-deploy")
+#     #run("git clone https://github.com/Smithsonian/sidora.git")
 
 @task
 def setup():
@@ -222,6 +250,9 @@ def setup():
 def start(service):
     fabtools.service.start(service)    
     
+@task
+def stop(service):
+    fabtools.service.stop(service)    
     
 ##########################    
 # Fedora server management
