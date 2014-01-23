@@ -19,7 +19,7 @@ def install():
     _php_install()
     _apache_install()
     _drupal_install()
-    _drupal_setup()
+#     _drupal_setup()
 
 def _rpm_setup():
     # prepare rpm installations
@@ -138,41 +138,18 @@ def _drupal_install():
     '''
     Installs Drupal
     '''
-    
-    # Download and unpack Drupal
-    run('wget http://ftp.drupal.org/files/projects/drupal-6.26.tar.gz')
-    #run('drush dl drupal-26')
-    run('tar -zxvf drupal-6.26.tar.gz')
-    sudo('mv drupal-6.26 /var/www')
-    with cd('/var/www'):
-        sudo('ln -s drupal-6.26 drupal')
-    
-    # Set up Multi-sites
-    with cd('/var/www/drupal'):
-        sudo('ln -s . fieldbooks')
-        sudo('ln -s . exhibition')
-    with cd('/var/www/drupal/sites'):
-        sudo('cp -r default si-islandora.si.edu.fieldbooks')
-        sudo('cp -r default si-islandora.si.edu.exhibition')
-    with cd('/var/www/drupal/sites/default'):
-        sudo('cp default.settings.php settings.php')
-        sudo('chmod a+w .')
-        sudo('chmod a+w settings.php')
-    with cd('/var/www/drupal/sites/si-islandora.si.edu.fieldbooks'):
-        sudo('cp default.settings.php settings.php')
-        sudo('chmod a+w .')
-        sudo('chmod a+w settings.php')
-    with cd('/var/www/drupal/sites/si-islandora.si.edu.exhibition'):
-        sudo('cp default.settings.php settings.php')
-        sudo('chmod a+w .')
-        sudo('chmod a+w settings.php')
 
-def _drupal_setup():
+    # Install drush
     require.rpm.packages(['drupal6-drush'])
     
-    # Download Core
-    ##########################################################
-    #drush dl -y --destination=$httpDir --drupal-project-rename=$rootDir;
+    # Download and unpack Drupal
+#     run('wget http://ftp.drupal.org/files/projects/drupal-6.26.tar.gz')
+#     run('tar -zxvf drupal-6.26.tar.gz')
+#     sudo('mv drupal-6.26 /var/www')
+    with cd('/var/www'):
+        sudo('drush dl drupal-6.26')
+        sudo('ln -s drupal-6.26 drupal')
+#         sudo('chown -R vagrant:vagrant drupal')
 
     with cd('/var/www/drupal/'):
         drush_site_install = ['drush site-install',
@@ -182,11 +159,40 @@ def _drupal_setup():
                         '--account-pass=Password123',
                         '--site-name=Sidora',
                         '--site-mail=admin@localhost',
-                        '--locale=si',
+#                        '--locale=si',
                         '--db-url=mysql://drupaldbuser:Password123@localhost/drupal6_default']
         drush_cmd = ' '.join(drush_site_install)
         sudo(drush_cmd)                  
-    
+
+    # Set up Multi-sites
+    with cd('/var/www/drupal/'):
+        drush_site_install = ['drush site-install',
+                        '-y default',
+                        '--account-mail=admin@localhost',
+                        '--account-name=admin',
+                        '--account-pass=Password123',
+                        '--site-name=Sidora Exhibition',
+                        '--sites-subdir=si-islandora.si.edu.exhibition',
+                        '--site-mail=admin@localhost',
+#                        '--locale=si',
+                        '--db-url=mysql://drupaldbuser:Password123@localhost/drupal6_exhibition']
+        drush_cmd = ' '.join(drush_site_install)
+        sudo(drush_cmd)                  
+        
+    with cd('/var/www/drupal/'):
+        drush_site_install = ['drush site-install',
+                        '-y default',
+                        '--account-mail=admin@localhost',
+                        '--account-name=admin',
+                        '--account-pass=Password123',
+                        '--site-name=Sidora Exhibition',
+                        '--sites-subdir=si-islandora.si.edu.fieldbooks',
+                        '--site-mail=admin@localhost',
+#                        '--locale=si',
+                        '--db-url=mysql://drupaldbuser:Password123@localhost/drupal6_fieldbooks']
+        drush_cmd = ' '.join(drush_site_install)
+        sudo(drush_cmd)                  
+
     with cd('/var/www/drupal/sites/default'):
         sudo('chmod a-w .')
         sudo('chmod a-w settings.php')
@@ -195,14 +201,40 @@ def _drupal_setup():
         sudo('mkdir modules')
 
     with cd('/var/www/drupal/sites/all/modules'):
-        sudo('git clone git://github.com/Smithsonian/sidora.git')
+#         sudo('git clone git://github.com/Smithsonian/sidora.git')
+        sudo('cp -r /vagrant/sidora ./sidora')
 
     with cd('/var/www/drupal/sites/all/modules'):
         drush_modules = []
         drush_cmd = 'drush -y dl ' + ' '.join(drush_modules)
         drush_cmd = 'drush -y en ' + ' '.join(drush_modules)
+    
+    # Set up Multi-sites
+#     with cd('/var/www/drupal'):
+#         sudo('ln -s . fieldbooks')
+#         sudo('ln -s . exhibition')
+#     with cd('/var/www/drupal/sites'):
+#         sudo('cp -r default si-islandora.si.edu.fieldbooks')
+#         sudo('cp -r default si-islandora.si.edu.exhibition')
+#     with cd('/var/www/drupal/sites/default'):
+#         sudo('cp default.settings.php settings.php')
+#         sudo('chmod a+w .')
+#         sudo('chmod a+w settings.php')
+#     with cd('/var/www/drupal/sites/si-islandora.si.edu.fieldbooks'):
+#         sudo('cp default.settings.php settings.php')
+#         sudo('chmod a+w .')
+#         sudo('chmod a+w settings.php')
+#     with cd('/var/www/drupal/sites/si-islandora.si.edu.exhibition'):
+#         sudo('cp default.settings.php settings.php')
+#         sudo('chmod a+w .')
+#         sudo('chmod a+w settings.php')
 
-def _install_fedora():
+
+def _fedora_install():
+    '''
+    Installs Fedora
+    '''
+    
     with cd('/usr/local/fedora'):
         sudo('java -jar fcrepo-installer-3.4.2.jar /var/www/drupal/sites/all/modules/sidora/data/fedora/install.properties', user='fedora')
         
@@ -230,6 +262,12 @@ def _install_fedora():
     # Start Tomcat to apply the policy changes
     sudo('/usr/local/fedora/tomcat/bin/startup.sh')
         
+def _gsearch_install():
+
+    # Download GSearch
+    with cd('/home/fedora'):
+        sudo('wget http://sourceforge.net/projects/fedora-commons/files/services/3.1/genericsearch-2.2.zip/download', user='fedora')
+        sudo('unzip genericsearch-2.2.zip', user='fedora')
 
     
 
