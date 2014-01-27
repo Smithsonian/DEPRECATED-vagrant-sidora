@@ -16,6 +16,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   #config.vm.box = "centos59x64"
   config.vm.box = "centos65x64"
 
+  # Set up hostname
+  config.vm.host_name = "localhost"
 
   # The url from where the 'config.vm.box' box will be fetched if it
   # doesn't already exist on the user's system.
@@ -23,11 +25,16 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   #config.vm.box_url = "http://puppet-vagrant-boxes.puppetlabs.com/centos-59-x64-vbox4210.box"
   config.vm.box_url = "https://github.com/2creatives/vagrant-centos/releases/download/v6.5.1/centos65-x86_64-20131205.box"
 
+  config.vm.provider "virtualbox" do |v|
+    v.customize ["modifyvm", :id, "--memory", 1024]
+  end
+
   # Create a forwarded port mapping which allows access to a specific port
   # within the machine from a port on the host machine. In the example below,
   # accessing "localhost:8080" will access port 80 on the guest machine.
   config.vm.network :forwarded_port, guest: 80, host: 8080,  
-  #config.vm.network :forwarded_port, guest: 8080, host: 8080,
+    auto_correct: true
+  config.vm.network :forwarded_port, guest: 8080, host: 8888,
     auto_correct: true
   config.vm.network :forwarded_port, guest: 8443, host: 8443,
     auto_correct: true
