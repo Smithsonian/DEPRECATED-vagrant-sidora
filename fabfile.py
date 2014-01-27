@@ -19,7 +19,6 @@ def install():
     _php_install()
     _apache_install()
     _drupal_install()
-#     _drupal_setup()
 
 def _rpm_setup():
     # prepare rpm installations
@@ -51,9 +50,12 @@ def _fedora_prep():
      # prepare Fedora
     if not fabtools.user.exists('fedora'):
         fabtools.user.create('fedora')
-        bash = ['export FEDORA_HOME=/usr/local/fedora','export CATALINA_HOME=/usr/local/fedora/tomcat','export JAVA_OPTS="-Xms1024m -Xmx1024m -XX:MaxPermSize=256m']
+        bash = ['export FEDORA_HOME=/usr/local/fedora',
+                'export CATALINA_HOME=/usr/local/fedora/tomcat',
+#                 'export JAVA_OPTS="-Xms1024m -Xmx1024m -XX:MaxPermSize=256m"']
+                'export JAVA_OPTS="-Xms100m -Xmx100m -XX:MaxPermSize=256m"'] # saner values for now
         with cd('/home/fedora'):
-            files.append('.bash_profile', bash, use_sudo=True)
+            files.append('.bashrc', bash, use_sudo=True)
 
 #     with cd('/home/fedora'):
     fedora_url = 'http://downloads.sourceforge.net/project/fedora-commons/fedora/3.4.2/fcrepo-installer-3.4.2.jar'
@@ -90,13 +92,13 @@ def _mysql_install():
             fabtools.mysql.create_database('drupal6_fieldbooks',owner='drupaldbuser')
         
         # Fedora databases
-        if not fabtools.mysql.database_exists('fedora3'):
-            fabtools.mysql.create_database('fedora3')
+        if not fabtools.mysql.database_exists('fedora'):
+            fabtools.mysql.create_database('fedora',owner='fedora')
 
         fabtools.mysql.query("GRANT ALL ON drupal6_default.* TO 'drupaldbuser'@'localhost' IDENTIFIED BY 'Password123';")
         fabtools.mysql.query("GRANT ALL ON drupal6_exhibition.* TO 'drupaldbuser'@'localhost' IDENTIFIED BY 'Password123';")
         fabtools.mysql.query("GRANT ALL ON drupal6_fieldbooks.* TO 'drupaldbuser'@'localhost' IDENTIFIED BY 'Password123';")
-        fabtools.mysql.query("GRANT ALL ON fedora3.* TO fedora@localhost IDENTIFIED BY 'Password123';")
+        fabtools.mysql.query("GRANT ALL ON fedora.* TO 'fedora'@'localhost' IDENTIFIED BY 'Password123';")
         
 def _php_install():
     php = ['php','php-cli','php-common','php-gd','php-ldap','php-mbstring','php-mysql','php-pdo','php-soap','php-xml']
@@ -239,7 +241,7 @@ def _fedora_install():
         sudo('java -jar fcrepo-installer-3.4.2.jar /var/www/drupal/sites/all/modules/sidora/data/fedora/install.properties', user='fedora')
         
     # Start Tomcat
-    sudo('/usr/local/fedora/tomcat/bin/startup.sh')
+    sudo('/usr/local/fedora/tomcat/bin/startup.sh', user='fedora')
     
     # Check catalina.out for errors
 #    tail -f /usr/local/fedora/tomcat/logs/catalina.out
