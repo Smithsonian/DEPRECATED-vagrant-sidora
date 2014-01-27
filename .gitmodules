@@ -1,3 +1,12 @@
 [submodule "cookbooks/java"]
 	path = cookbooks/java
 	url = https://github.com/opscode-cookbooks/java
+[submodule "modules/sidora"]
+	path = modules/sidora
+	url = https://github.com/Smithsonian/sidora.git
+[submodule "modules/IslandoraPYUtils"]
+	path = modules/IslandoraPYUtils
+	url = https://github.com/Smithsonian/IslandoraPYUtils.git
+[submodule "modules/islandora_microservices"]
+	path = modules/islandora_microservices
+	url = https://github.com/Smithsonian/islandora_microservices.git
