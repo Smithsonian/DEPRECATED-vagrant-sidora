@@ -9,7 +9,7 @@ import fabtools.mysql
 
 @task
 def test():
-    pass
+    _fits_install()
 
 @task
 def install():
@@ -364,10 +364,25 @@ def _fits_install():
     '''
     
     with cd('/home/fedora'):
-        sudo('wget https://fits.googlecode.com/files/fits-0.6.2.zip', user='fedora')
+        sudo('wget https://fits.googlecode.com/files/fits-0.6.2.zip')
         sudo('unzip fits-0.6.2.zip -d /opt/')
         sudo('ln -s /opt/fits-0.6.2/fits.sh /usr/bin/fits')
-        sudo('ln -s /opt/fits-0.6.2 fits') # wrong directory?        
+        sudo('ln -s /opt/fits-0.6.2 fits') # wrong directory?
+
+def _swftools_install():
+    '''
+    SWFTools is a collection of utilities for working with Adobe Flash
+    files (SWF files). The tool collection includes programs for reading
+    SWF files, combining them, and creating them from other content
+    (like images, sound files, videos or sourcecode).
+    '''
+    
+    with cd('/home/fedora'):
+        sudo('wget http://www.swftools.org/swftools-0.9.1.tar.gz')
+        sudo('tar zxvf swftools-0.9.1.tar.gz')
+        sudo('mv swftools-0.9.1 /opt')
+        sudo('ln -s /opt/fits-0.6.2/fits.sh /usr/bin/fits')
+        sudo('ln -s /opt/swftools-0.9.1 swftools')
         
 def _microservices_install():
     
@@ -402,6 +417,160 @@ def _microservices_install():
     with cd('/opt/IslandoraPYUtils'):
         sudo('python2.6 setup.py install')
 
+def _drupal_libraries_install():
+    '''
+    Flexpaper/Shadowbox/YUI/ExtJS/Tuque
+    '''
+    
+    ## TODO: improve with fabtools
+    
+    # Create the libraries directory
+    sudo('mkdir /var/www/drupal/sites/all/libraries')
+    sudo('chown apache:apache /var/www/drupal/sites/all/libraries')
+   
+    # Flexpaper
+    # Install Flexpaper 1.5.1 to view Flash files (mostly PDF conversions).
+    sudo('mkdir /var/www/drupal/sites/all/libraries/flexpaper')
+    with cd('/var/www/drupal/sites/all/libraries/flexpaper'):
+        sudo('wget https://flexpaper.googlecode.com/files/FlexPaper_1.5.1_flash.zip')
+        sudo('unzip FlexPaper_1.5.1_flash.zip')
+        sudo('chown -R apache:apache ../flexpaper')
+    
+    # Shadowbox
+    sudo('mkdir /var/www/drupal/sites/all/libraries/shadowbox'):
+    with cd('/var/www/drupal/sites/all/libraries/shadowbox'):
+        sudo('cp -r sidora/data/shadowbox/shadowbox3.0.3 .')
+        sudo('chown -R apache:apache ../shadowbox')
+        
+    # YUI
+    sudo('mkdir /var/www/drupal/sites/all/libraries/yui')
+    with cd('/var/www/drupal/sites/all/libraries/yui'):
+        sudo('wget http://yui.zenfs.com/releases/yui3/yui_3.5.1.zip')
+        sudo('unzip yui_3.5.1')
+        sudo('chown -R apache:apache yui')
+        
+    # ExtJS
+    with cd('/var/www/drupal/sites/all/libraries'):
+        sudo('wget http://cdn.sencha.com/ext-4.1.1-gpl.zip')
+        sudo('unzip ext-4.1.1-gpl.zip')
+        sudo('chown -R ext-4.1.1')
+        sudo('ln -s ext-4.1.1 extjs')
+    
+    # Tuque
+    with cd('/var/www/drupal/sites/all/libraries'):
+        sudo('git pull git://github.com/Islandora/tuque.git') # TODO: replace with require.git
+    
+def _drupal_modules_install():
+    
+    #Install Drush:
+    #cd /opt
+    #wget http://ftp.drupal.org/files/projects/drush-7.x-5.8.tar.gz
+    #tar -xvzf drush-7.x-5.8.tar.gz
+    #ln -s /opt/drush/drush /usr/bin/drush
+    
+    with cd('/var/www/drupal/sites/all/modules'):
+        # imageapi
+        sudo('drush dl imageapi')
+        sudo('drush en imageapi')
+                
+        # jquery_ui 6.x-1.5 (1.7.3):
+        sudo('drush dl jquery_ui')
+        # Follow the install instructions for jQuery UI, using jQuery (1.7.3).
+        sudo('drush en jquery_ui')
+
+        # jquery_update:
+        sudo('drush dl jquery_update')
+        sudo('drush en jquery_update')
+
+        #shadowbox:
+        sudo('drush dl shadowbox')
+        sudo('drush en shadowbox')
+
+        #skinr:
+        sudo('drush dl skinr')
+        sudo('drush en skinr')
+
+        #tabs:
+        sudo('git clone git://github.com/Islandora/tabs.git')
+        with cd('tabs'):
+            git checkout 64fbedb9e7488b9dce712e3549ae982d8d1752b1
+        sudo('drush en tabs')
+
+        #yui:
+        sudo('git clone git://github.com/discoverygarden/yui.git')
+        sudo('drush en yui')
+
+        #extjs:
+        sudo('git clone git://github.com/discoverygarden/extjs.git')
+        with cd('extjs'):
+            git checkout 94e13601790e4716c87a6277995a77612ba6487e
+        sudo('drush en extjs')
+
+        #islandora:
+        sudo('git clone git://github.com/Islandora/islandora.git')
+        with cd('islandora'):
+            sudo('git checkout 6.x-12.1.0')
+        sudo('drush en islandora')
+
+        #islandora_fedora_api
+        sudo('git clone git://github.com/Islandora/islandora_fedora_api.git')
+        with cd('islandora_fedora_api'):
+            sudo('git checkout origin/6.xWillXP')
+        sudo('drush en islandora_fedora_api')
+
+        #islandora_solr_custom
+        sudo('git clone git://github.com/Islandora/islandora_solr_custom.git)
+        with cd('islandora_solr_custom'):
+            sudo('git checkout 6f31819b3da68d6b00e3ca3869dd0e22faf4a3db')
+        sudo('drush en islandora_solr_custom')
+
+        #islandora_solr_search
+        sudo('git clone git://github.com/Islandora/islandora_solr_search.git')
+        with cd('islandora_solr_search'):
+            sudo('git checkout 6.x-12.1.0')
+        sudo('drush en islandora_solr_search')
+
+        #islandora_xacml_editor
+        sudo('git clone git://github.com/Islandora/islandora_xacml_editor.git')
+        with cd('islandora_xacml_editor'):
+            sudo('git checkout 7b6910f96cd29cca74ac77aec91f00ee50a4195a')
+        sudo('drush en islandora_xacml_editor')
+
+        #objective_forms
+        sudo('git clone git://github.com/Islandora/objective_forms.git')
+        with cd('objective_forms'):
+            sudo('git checkout c3cd6a26831df0cf0ef4e88f627496d56c910995')
+        sudo('drush en objective_forms')
+
+        #php_lib
+        sudo('git clone git://github.com/Islandora/php_lib.git')
+        with cd('php_lib'):
+            sudo('git checkout 8e75bffeb9680178c5ddbd51dde104d5f616a7c5')
+        sudo('drush en php_lib')
+
+        #islandora_xml_forms
+        sudo('git clone git://github.com/Islandora/islandora_xml_forms.git')
+        with cd('islandora_xml_forms'):
+            sudo('git checkout 6900250d8d71c55dd4bc1809f76d9d0dc350a1b1')
+        sudo('drush en islandora_xml_forms')
+
+        #islandora_content_model_forms:
+        sudo('git clone git://github.com/discoverygarden/islandora_content_model_forms.git')
+        with cd('islandora_content_model_forms'):
+            sudo('git checkout origin/Smithsonian')
+        sudo('drush en islandora_content_model_forms')
+
+        #islandora_content_model_viewer:
+        sudo('git clone git://github.com/discoverygarden/islandora_content_model_viewer.git')
+        with cd('islandora_content_model_viewer'):
+            sudo('git checkout origin/Smithsonian')
+        sudo('drush en islandora_content_model_viewer')
+
+        #sidora:
+        sudo('git clone git://github.com/discoverygarden/sidora.git')
+        sudo('git clone git://github.com/Smithsonian/sidora.git')
+        sudo('drush en sidora')
+
     
 
 # @task
@@ -410,11 +579,11 @@ def _microservices_install():
 #     #fabtools.require.git.working_copy("https://github.com/Smithsonian/sidora.git")
 #     fabtools.require.git.working_copy("https://github.com/Smithsonian/sidora-deploy")
 #     #run("git clone https://github.com/Smithsonian/sidora.git")
-
-@task
-def setup():
-    # Require git
-    fabtools.rpm.install('git')
+#
+# @task
+# def setup():
+#     # Require git
+#     fabtools.rpm.install('git')
     
     
 @task
@@ -433,8 +602,8 @@ def stop(service):
     
 ##########################    
 # Fedora server management
-@task
-def fc(cmd):
-    sudo('/etc/init.d/fcrepo-server %s' % cmd)
+# @task
+# def fc(cmd):
+#     sudo('/etc/init.d/fcrepo-server %s' % cmd)
     
     
