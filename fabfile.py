@@ -309,12 +309,66 @@ def _solr_install():
     with cd('/home/fedora'):
         require.rpm.packages('ant','xml-commons-apis')
         sudo('wget http://archive.apache.org/dist/lucene/solr/1.4.1/apache-solr-1.4.1.zip')
-        sudo('unzip apache-solr-1.4.1.zip')
-        sudo('ln –s apache-solr-1.4.1 solr')
+        sudo('unzip apache-solr-1.4.1.zip -d /opt/')
     with cd('/opt'):
-        sudo chown -R fedora:fedora apache-solr-1.4.1
+        sudo('ln -s /opt/apache-solr-1.4.1 /opt/solr')
+        sudo('chown -R fedora:fedora /opt/apache-solr-1.4.1')
+        
+    # Install the Solr Index Configurations
+    with cd('/usr/local/fedora'):
+        sudo('cp -r /var/www/drupal-6.26/sites/all/modules/sidora/data/solr/gsearch_solr .')
+        sudo('cp -r /var/www/drupal-6.26/sites/all/modules/sidora/data/solr/gsearch_fieldbooks .')
+       
+    # Solr.xml    
+    text = """
+<Context docBase="/opt/solr/dist/apache-solr-1.4.1.war" debug="0" crossContext="true">
+    <Environment name="solr/home" type="java.lang.String" value="/usr/local/fedora/gsearch_solr/solr" override="true" />
+</Context>"""
+    files.append('/usr/local/fedora/tomcat/conf/Catalina/localhost/solr.xml',text, use_sudo=True)
+    
+    # Start Tomcat
+    start('tomcat')
 
 
+def _drupal_filter_install():
+    stop('tomcat')
+    
+    # Install the authorization module
+    with cd('/usr/local/fedora/tomcat/webapps/fedora/WEB-INF/lib'):
+        sudo('cp /var/www/drupal-6.26/sites/all/modules/sidora/data/fedora/DrupalAuthModule.jar .')
+    
+    # Install and configure Fedora security    
+    text = """
+fedora-auth
+{
+        org.fcrepo.server.security.jaas.auth.module.XmlUsersFileModule required
+        debug=true; 
+        ca.upei.roblib.fedora.servletfilter.DrupalAuthModule required
+        debug=true; 
+};
+"""
+    files.append('/usr/local/fedora/server/config/jaas.conf',text, use_sudo=True)
+    sudo('cp filter-drupal.xml /usr/local/fedora/server/config/filter-drupal.xml')
+    
+    # Update the passwords in filter-drupal.xml
+    str1 
+    str2
+    files.sed('/usr/local/fedora/server/config/filter-drupal.xml', str1, str2, use_sudo=True)
+    
+    # Start Tomcat
+    start('tomcat')
+    
+def _fits_install():
+    '''
+    FITS provides a framework that integrates a number of tools for characterizing files (bitsteams).
+    '''
+    
+    with cd('/home/fedora'):
+        sudo('wget https://fits.googlecode.com/files/fits-0.6.2.zip', user='fedora')
+        sudo('unzip fits-0.6.2.zip -d /opt/')
+        sudo('ln -s /opt/fits-0.6.2/fits.sh /usr/bin/fits')
+        sudo('ln -s /opt/fits-0.6.2 fits') # wrong directory?        
+        
 def _microservices_install():
     
     # Add the EPEL repository
