@@ -7,6 +7,9 @@ from fabtools.vagrant import vagrant
 from fabtools import require
 import fabtools.mysql
 
+@task
+def test():
+    pass
 
 @task
 def install():
@@ -271,6 +274,80 @@ def _gsearch_install():
         sudo('wget http://sourceforge.net/projects/fedora-commons/files/services/3.1/genericsearch-2.2.zip/download', user='fedora')
         sudo('unzip genericsearch-2.2.zip', user='fedora')
 
+        # Copy to Tomcat
+        sudo('cp genericsearch-2.2/fedoragsearch.war /usr/local/fedora/tomcat/webapps/', user='fedora')
+        # verify creation of /usr/local/fedora/tomcat/webapps/fedoragsearch ?
+    
+    # Edit configuration
+    with cd('/var/www/drupal/sites/all/modules/sidora/data/fedoragsearch/WEB-INF/classes'):
+        sudo('cp -r config /usr/local/fedora/tomcat/webapps/fedoragsearch/WEB-INF/classes/', user='fedora')
+    
+    fedoragsearch_path = '/usr/local/fedora/tomcat/webapps/fedoragsearch/WEB-INF/classes/config/'
+    fedoragsearch_properties = fedoragsearch_path + 'fedoragsearch.properties'
+    fedoragsearch_soapBase = 'http://localhost:8080/fedoragsearch/services'
+    fedoragsearch_soapUser = 'fedora'
+    fedoragsearch_soapPass = 'Password123'
+    fedoragsearch_indexNames = 'gsearch_solr gsearch_fieldbooks'
+    
+    files.sed(fedoragsearch_properties, 'fedoragsearch.soapBase.+\n', fedoragsearch_soapBase, use_sudo=True)
+    files.sed(fedoragsearch_properties, 'fedoragsearch.soapUser.+\n', fedoragsearch_soapUser, use_sudo=True)
+    files.sed(fedoragsearch_properties, 'fedoragsearch.soapPass.+\n', fedoragsearch_soapPass, use_sudo=True)
+    files.sed(fedoragsearch_properties, 'fedoragsearch.indexNames.+\n', fedoragsearch_indexNames, use_sudo=True)
+    
+    str1 = '<xsl:param name="HOST" select="\'si-fedoradev.si.edu\'"/>'
+    str2 = '<xsl:param name="HOST" select="\'localhost\'"/>'    
+    files.sed(fedoragsearch_path + 'index/gsearch_solr/demoFoxmlToSolr.xslt', str1, str2, use_sudo=True)
+
+    # Restart tomcat
+    stop('tomcat')
+    start('tomcat')
+    
+def _solr_install():
+    stop('tomcat')
+    
+    # Download and install Solr:
+    with cd('/home/fedora'):
+        require.rpm.packages('ant','xml-commons-apis')
+        sudo('wget http://archive.apache.org/dist/lucene/solr/1.4.1/apache-solr-1.4.1.zip')
+        sudo('unzip apache-solr-1.4.1.zip')
+        sudo('ln –s apache-solr-1.4.1 solr')
+    with cd('/opt'):
+        sudo chown -R fedora:fedora apache-solr-1.4.1
+
+
+def _microservices_install():
+    
+    # Add the EPEL repository
+    #wget http://dl.fedoraproject.org/pub/epel/5/x86_64/epel-release-5-4.noarch.rpm
+    require.rpm.package('epel-release-5-4.noarch4')
+
+    # Install Python
+    py_pckgs = ['readline-devel','sqlite-devel','zlib-devel','openssl-devel','bzip2-devel','ncurses-devel']
+    require.rpm.packages(py_pckgs)
+    require.rpm.packages('python26')
+    require.rpm.packages('python-devel')
+    require.rpm.packages('python-setuptools')
+
+    # Create a location for installing micro services
+    with cd('/opt'):
+        sudo('mkdir islandora_microservices')
+        sudo('chown fedora:fedora islandora_microservices')
+    with cd('/opt/islandora_microservices'):
+        sudo('cp /vagrant/modules/islandora_microservices ./')
+    with cd('/vagrant/modules/islandora_microservices/islandora_microservices'):
+        sudo('cp islandora_listener.cfg.default islandora_listener.cfg')
+
+# Edit islandora_listener.cfg. Change the password to whatever you have chosen.
+# and enable the smithsonian_plugin.
+# [Plugins]
+# enabled: smithsonian_plugin
+
+    # Obtain the Islandora Python Utilities
+    with cd('/opt'):
+        sudo('cp /vagrant/modules/IslandoraPYUtils ./')
+    with cd('/opt/IslandoraPYUtils'):
+        sudo('python2.6 setup.py install')
+
     
 
 # @task
@@ -288,11 +365,17 @@ def setup():
     
 @task
 def start(service):
-    fabtools.service.start(service)    
+    if service == 'tomcat':
+        sudo('/usr/local/fedora/tomcat/bin/startup.sh')
+    else:
+        fabtools.service.start(service)    
     
 @task
 def stop(service):
-    fabtools.service.stop(service)    
+    if service == 'tomcat':
+        sudo('/usr/local/fedora/tomcat/bin/shutdown.sh')
+    else:
+        fabtools.service.stop(service)    
     
 ##########################    
 # Fedora server management
@@ -301,23 +384,3 @@ def fc(cmd):
     sudo('/etc/init.d/fcrepo-server %s' % cmd)
     
     
-    
-    
-# Shell provisioning
-#   # somehow need to incorporate this: http://cbednarski.com/articles/creating-vagrant-base-box-for-centos-62/
-# #  config.vm.provision :shell, :inline => "sudo cp /vagrant/conf/ifcfg-eth0 /etc/sysconfig/network-scripts/ifcfg-eth0"
-#   #config.vm.provision :unix_reboot
-#   config.vm.provision :shell, :inline => "sudo yum -y update"
-#   config.vm.provision :shell, :inline => "sudo yum -y upgrade"
-# #  config.vm.provision :shell, :inline => "sudo rpm -Uvh http://packages.sw.be/rpmforge-release/rpmforge-release-0.5.3-1.el5.rf.x86_64.rpm "
-#   config.vm.provision :shell, :inline => "sudo rpm -Uvh http://packages.sw.be/rpmforge-release/rpmforge-release-0.5.3-1.el6.rf.x86_64.rpm "
-#   config.vm.provision :shell, :inline => "sudo yum -y --skip-broken groupinstall 'Development Tools'"
-#   config.vm.provision :shell, :inline => "sudo yum -y install puppet wget mlocate"
-# 
-#   # Fedora
-# 
-#   config.vm.provision :shell, :inline => "sudo yum -y install mysql mysql-server"
-#   config.vm.provision :shell, :inline => "sudo chkconfig mysqld on"
-#   config.vm.provision :shell, :inline => "sudo service mysqld start"
-# #/usr/bin/mysqladmin -u root password 'new-password'
-# #/usr/bin/mysqladmin -u root -h localhost.localdomain password 'new-password'
